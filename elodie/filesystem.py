@@ -18,9 +18,6 @@ from elodie.config import load_config
 from elodie.localstorage import Db
 from elodie.media.base import Base, get_all_subclasses
 from elodie.plugins.plugins import Plugins
-from elodie.external.pyexiftool import ExifTool
-from elodie.dependencies import get_exiftool
-from elodie import constants
 
 class FileSystem(object):
     """A class for interacting with the file system."""
@@ -49,14 +46,6 @@ class FileSystem(object):
 
         # Instantiate a plugins object
         self.plugins = Plugins()
-
-        #Initialize ExifTool Subprocess
-        exiftool_addedargs = [
-            u'-config',
-            u'"{}"'.format(constants.exiftool_config)
-        ]
-
-        ExifTool(executable_=get_exiftool(), addedargs=exiftool_addedargs).start()
 
     def create_directory(self, directory_path):
         """Create a directory if it does not already exist.
@@ -554,7 +543,7 @@ class FileSystem(object):
         directory_name = self.get_folder_path(metadata)
         dest_directory = os.path.join(destination, directory_name)
         file_name = self.get_file_name(metadata)
-        dest_path = os.path.join(dest_directory, file_name)
+        dest_path = os.path.join(dest_directory, file_name)        
 
         media.set_original_name()
 
@@ -600,7 +589,7 @@ class FileSystem(object):
             #  before we made any changes.
             # Then set the utime on the destination file based on metadata.
             os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
-            self.set_utime_from_metadata(media.get_metadata(), dest_path)
+            self.set_utime_from_metadata(metadata, dest_path)
 
         db = Db()
         db.add_hash(checksum, dest_path)
@@ -654,6 +643,3 @@ class FileSystem(object):
             regex_list = compiled_list
 
         return any(regex.search(path) for regex in regex_list)
-
-    def __del__(self):
-        ExifTool().terminate
