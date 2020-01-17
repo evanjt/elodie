@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import os
 import sys
-import unittest 
+import unittest
 
 try:
     reload  # Python 2.7
@@ -65,6 +65,9 @@ def test_hash_db():
 
 def test_location_db():
     assert constants.location_db == '{}/location.json'.format(constants.application_directory), constants.location_db
+
+def test_placename_db():
+    assert constants.placename_db == '{}/geonames.sqlite'.format(constants.application_directory), constants.placename_db
 
 def test_script_directory():
     path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))

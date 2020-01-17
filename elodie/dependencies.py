@@ -9,6 +9,7 @@ import sys
 from distutils.spawn import find_executable
 
 import elodie.closestgeoname.closestgeoname as closestgeoname
+from elodie import constants
 
 #: Error to print when exiftool can't be found.
 EXIFTOOL_ERROR = u"""
@@ -48,8 +49,7 @@ def verify_dependencies():
         print(EXIFTOOL_ERROR, file=sys.stderr)
         return False
 
-    print(closestgeoname.DBFILENAME)
-    if closestgeoname.check_db_existance(closestgeoname.DBFILENAME,
+    if closestgeoname.check_db_existance(constants.placename_db,
                                          closestgeoname.CITY_COLNAMES,
                                          closestgeoname.STATE_COLNAMES) is False:
         return False

@@ -22,6 +22,9 @@ hash_db = '{}/hash.json'.format(application_directory)
 #: File in which to store geolocation details about media Elodie has seen.
 location_db = '{}/location.json'.format(application_directory)
 
+#: Location to store the placenames sqlite database used by geonames library
+placename_db = '{}/geonames.sqlite'.format(application_directory)
+
 #: Elodie installation directory.
 script_directory = path.dirname(path.dirname(path.abspath(__file__)))
 
