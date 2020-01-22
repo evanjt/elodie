@@ -14,6 +14,7 @@ from shutil import copyfile
 from time import strftime
 
 from elodie import constants
+from PIL import Image
 
 
 class Db(object):
@@ -119,13 +120,14 @@ class Db(object):
             creating the hash.
         :returns: str or None
         """
-        hasher = hashlib.sha256()
-        with open(file_path, 'rb') as f:
-            buf = f.read(blocksize)
 
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = f.read(blocksize)
+        # https://github.com/jmathai/elodie/issues/311
+
+        hasher = hashlib.sha256()
+        with Image.open(file_path, mode='r') as f:
+            buf = f.tobytes(encoder_name='raw')
+
+            hasher.update(buf)
             return hasher.hexdigest()
         return None
 
