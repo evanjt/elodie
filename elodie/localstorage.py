@@ -121,14 +121,26 @@ class Db(object):
         :returns: str or None
         """
 
-        # https://github.com/jmathai/elodie/issues/311
+        try:
+            # https://github.com/jmathai/elodie/issues/311
+            # Store the hash of the image without EXIF data, therefore
+            # preserving the same hash on the same image
+            hasher = hashlib.sha256()
+            with Image.open(file_path, mode='r') as f:
+                hasher.update(f.tobytes())
+                return hasher.hexdigest()
 
-        hasher = hashlib.sha256()
-        with Image.open(file_path, mode='r') as f:
-            buf = f.tobytes(encoder_name='raw')
+        except IOError:
+            # Should the file not be an image, or IO problems with Pillow,
+            # hash the entire file instead
+            hasher = hashlib.sha256()
+            with open(file_path, 'rb') as f:
+                buf = f.read(blocksize)
 
-            hasher.update(buf)
-            return hasher.hexdigest()
+                while len(buf) > 0:
+                    hasher.update(buf)
+                    buf = f.read(blocksize)
+                return hasher.hexdigest()
         return None
 
     def get_hash(self, key):
