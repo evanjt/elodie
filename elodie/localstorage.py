@@ -110,7 +110,7 @@ class Db(object):
         """
         return key in self.hash_db
 
-    def checksum(self, file_path, blocksize=65536):
+    def checksum(self, file_path, blocksize=65536, with_exif=True):
         """Create a hash value for the given file.
 
         See http://stackoverflow.com/a/3431835/1318758.
@@ -118,29 +118,54 @@ class Db(object):
         :param str file_path: Path to the file to create a hash for.
         :param int blocksize: Read blocks of this size from the file when
             creating the hash.
+        :param bool with_exif: Determines if checksum ignores or includes
+            EXIF. Default: True (standard checksum method)
         :returns: str or None
         """
+        hasher = hashlib.sha256()
+        if with_exif:
+            return self.checksum_whole_file(file_path, blocksize, hasher)
+        else:
+            return self.checksum_without_exif(file_path, hasher)
+        return None
 
+    def checksum_without_exif(self, file_path, hasher, blocksize):
+        """ Create a hash value for the input image without EXIF data.
+
+        :param str file_path: Path to the file to create a hash for.
+        :param hashlib hasher: A class of library hashlib defining hash algorithm
+        :returns: str or None
+        """
         try:
             # https://github.com/jmathai/elodie/issues/311
             # Store the hash of the image without EXIF data, therefore
             # preserving the same hash on the same image
-            hasher = hashlib.sha256()
             with Image.open(file_path, mode='r') as f:
                 hasher.update(f.tobytes())
                 return hasher.hexdigest()
-
         except IOError:
-            # Should the file not be an image, or IO problems with Pillow,
-            # hash the entire file instead
-            hasher = hashlib.sha256()
-            with open(file_path, 'rb') as f:
-                buf = f.read(blocksize)
+            # If the file is incompatible with PIL.Image, such that the file may
+            # not even be an image, default to whole-file method
+            return self.checksum_whole_file(file_path, blocksize, hasher)
 
-                while len(buf) > 0:
-                    hasher.update(buf)
-                    buf = f.read(blocksize)
-                return hasher.hexdigest()
+        return None
+
+    def checksum_whole_file(self, file_path, blocksize, hasher):
+        """Create a hash value for the entire input file.
+
+        :param str file_path: Path to the file to create a hash for.
+        :param int blocksize: Read blocks of this size from the file when
+            creating the hash.
+        :returns: str or None
+        """
+        with open(file_path, 'rb') as f:
+            buf = f.read(blocksize)
+
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = f.read(blocksize)
+            return hasher.hexdigest()
+
         return None
 
     def get_hash(self, key):

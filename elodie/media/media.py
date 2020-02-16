@@ -314,6 +314,7 @@ class Media(Base):
         return status
 
     def __set_tags(self, tags):
+        print("tags", tags)
         if(not self.is_valid()):
             return None
 
